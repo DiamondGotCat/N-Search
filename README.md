@@ -1,3 +1,6 @@
+
+<img width="1323" alt="ScreenShot" src="https://github.com/user-attachments/assets/8bf16432-5870-4bca-b3ee-2ba1b444b91e">
+
 # N-Search
 
 > [!NOTE]
