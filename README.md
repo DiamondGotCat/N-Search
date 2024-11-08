@@ -1,5 +1,5 @@
 
-<img width="1323" alt="ScreenShot" src="https://github.com/user-attachments/assets/8bf16432-5870-4bca-b3ee-2ba1b444b91e">
+<img width="1456" alt="Screenshot" src="https://github.com/user-attachments/assets/a805c5dc-4b15-496a-874c-399dd801fc10">
 
 # N-Search
 
