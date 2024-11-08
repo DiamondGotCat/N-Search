@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  python-app:
+    image: techcat/n-search-pycon:1.0.0
+    container_name: python_container
+    depends_on:
+      - mysql
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_container
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: test
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+
+volumes:
+  mysql_data:
