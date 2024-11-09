@@ -3,6 +3,24 @@
 
 # N-Search
 
+## Structure
+
+### Search
+1. Search Button Clicked
+2. Search on MySQL
+3. Search on DuckDuckGo
+4. Ranking Search Result with `all-MiniLM-L6-v2`
+5. Show
+
+### Ask AI
+1. Query has Sent to Server
+2. Generate Answer using `llama-cpp-python`
+3. Show
+
+## Search Source
+- DuckDuckGo
+- MySQL in Docker (Manually crawl)
+
 ## How to Use
 1. Install Docker
 2. Install N-Search with Docker-compose Command (`docker-compose up -d`)
