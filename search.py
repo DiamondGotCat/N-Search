@@ -216,7 +216,7 @@ def ask_ai():
         return jsonify({'error': '質問が必要です。'}), 400
 
     try:
-        response = ask_llms[model_name](query, max_tokens=512)
+        response = ask_llms[model_name](query, max_tokens=8192)
         answer = response['choices'][0]['text'].split("[/assistant]")[0].split("[user]")[0].split("[/user]")[0].split("[inst]")[0].split("[/inst]")[0]
         return jsonify({'response': answer})
     except Exception as e:
