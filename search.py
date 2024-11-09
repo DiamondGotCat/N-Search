@@ -208,7 +208,7 @@ def ask_ai():
 
     data = request.json
     query = data.get('query')
-    model_name = data.get('model', 'gemma2-2b-it')
+    model_name = data.get('model', 'llama3.1-8b-instruct')
 
     KamuJpModern().modernLogging(process_name="Ask AI").log(f"Query: {query}", "INFO")
 
@@ -217,7 +217,7 @@ def ask_ai():
 
     try:
         response = ask_llms[model_name](query, max_tokens=512)
-        answer = response['choices'][0]['text'].split("[/assistant]")[0]
+        answer = response['choices'][0]['text'].split("[/assistant]")[0].split("[user]")[0].split("[inst]")[0]
         return jsonify({'response': answer})
     except Exception as e:
         return jsonify({'error': f'AI応答に失敗しました: {str(e)}'}), 500
