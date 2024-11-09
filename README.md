@@ -15,7 +15,7 @@
 1. Search Button Clicked
 2. Search on MySQL
 3. Search on DuckDuckGo
-4. Ranking Result with `all-MiniLM-L6-v2`
+4. Ranking Result using `all-MiniLM-L6-v2`
 5. Show
 
 ### Ask AI
