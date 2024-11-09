@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 import re
 from llama_cpp import Llama
 from duckduckgo_search import DDGS as ddg
+from KamuJpModern import KamuJpModern
 
 ask_models = {
     "llama3.2-3b-instruct": {
@@ -28,7 +29,6 @@ import argparse
 import requests
 import os
 import time
-from KamuJpModern import KamuJpModern
 
 class Downloader:
     ONE_MB = 1024 * 1024
