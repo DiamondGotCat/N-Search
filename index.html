@@ -236,7 +236,12 @@
             </div>
             <!-- AIチャット -->
             <div id="ask-ai-container-mobile" class="chat-container-mobile rounded">
-                <h5 class="mb-3">Gemma 2B it</h5>
+                <div class="mb-3">
+                    <label for="model-select" class="form-label"><h5>Select Model</h5></label>
+                    <select id="model-select" class="form-select">
+                        <option value="">Select a model</option>
+                    </select>
+                </div>
                 <div id="chat-box-mobile">
                     <div id="chat-messages-mobile" class="chat-messages"></div>
                     <div class="input-group">
@@ -287,6 +292,7 @@
             const openAddUrlModalButton = document.getElementById('open-add-url-modal');
             const saveUrlButton = document.getElementById('save-url-button');
             const addUrlInput = document.getElementById('add-url-input');
+            const modelSelect = document.getElementById('model-select');
 
             // Open the modal
             openAddUrlModalButton.addEventListener('click', (e) => {
@@ -399,7 +405,7 @@
             const askAiQueryInput = document.getElementById('ask-ai-query');
             const chatMessagesDiv = document.getElementById('chat-messages');
             const clearAiButton = document.getElementById('clear-ai-button');
-
+            
             let chatHistory = '';
 
             function showContinueButton() {
@@ -414,6 +420,8 @@
 
             askAiButton.addEventListener('click', async () => {
                 const query = askAiQueryInput.value.trim();
+                const selectedModel = modelSelect.value;
+                
                 if (!query) {
                     return;
                 }
@@ -439,7 +447,8 @@
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            query: `[inst][/inst]${chatHistory}[assistant]`
+                            query: `[inst][/inst]${chatHistory}[assistant]`,
+                            model: selectedModel
                         })
                     });
 
