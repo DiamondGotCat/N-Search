@@ -22,7 +22,7 @@ ask_models = {
 }
 ranking_model_name = "sentence-transformers/all-MiniLM-L6-v2"
 
-KamuJpModern().modernLogging(process_name="Ask Models").log(list(ask_models.keys()).join("\n"), "INFO")
+KamuJpModern().modernLogging(process_name="Ask Models").log(", ".join(ask_models.keys()), "INFO")
 KamuJpModern().modernLogging(process_name="Ranking Model").log(ranking_model_name, "INFO")
 
 import argparse
@@ -172,7 +172,7 @@ def search():
     if not results:
         return jsonify({'results': []})
 
-    KamuJpModern().modernLogging(process_name="Search API").log(results.join("\n"), "INFO")
+    KamuJpModern().modernLogging(process_name="Search API").log(", ".join([doc['title'] for doc in results]), "INFO")
 
     def flatten_embeddings(embedding):
         if isinstance(embedding[0], list):
@@ -204,7 +204,7 @@ def search():
 
     sorted_docs = sorted(relevant_docs, key=lambda x: x['similarity'], reverse=True)
 
-    KamuJpModern().modernLogging(process_name="Search API").log(sorted_docs.join("\n"), "INFO")
+    KamuJpModern().modernLogging(process_name="Search API").log(", ".join([doc['title'] for doc in sorted_docs]), "INFO")
     return jsonify({'results': sorted_docs})
 
 @app.route('/models', methods=['GET'])
