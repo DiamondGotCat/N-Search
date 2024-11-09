@@ -1,0 +1,14 @@
+flask
+mysql-connector-python
+flask-cors
+numpy
+langchain
+langchain-huggingface
+transformers
+torch
+langchain-community
+sentence-transformers
+bs4
+llama-cpp-python
+duckduckgo_search
+kamu-jp-modern
