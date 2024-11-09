@@ -14,9 +14,9 @@ from llama_cpp import Llama
 from duckduckgo_search import DDGS as ddg
 
 ask_models = {
-    "llama3.1-8b-instruct": {
-        "path": "/app/llama3.1-8b-instruct.gguf",
-        "url": "https://huggingface.co/bartowski/Meta-Llama-3.1-8B-Instruct-GGUF/resolve/main/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf"
+    "llama3.2-3b-instruct": {
+        "path": "/app/llama3.2-3b.gguf",
+        "url": "https://registry.ollama.ai/v2/library/llama3.2/manifests/3b"
     }
 }
 ranking_model_name = "sentence-transformers/all-MiniLM-L6-v2"
