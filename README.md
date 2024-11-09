@@ -1,10 +1,7 @@
 
-<img width="1456" alt="Screenshot" src="https://github.com/user-attachments/assets/a805c5dc-4b15-496a-874c-399dd801fc10">
+<img width="1698" alt="Screenshot" src="https://github.com/user-attachments/assets/66b4da36-edd1-4fb2-a86b-d48c4beb5e31">
 
 # N-Search
-
-> [!NOTE]
-> Currently Project is in Japanese
 
 ## How to Use
 1. Install Docker
