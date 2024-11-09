@@ -3,6 +3,12 @@
 
 # N-Search
 
+## Features
+- [x] Modern Design
+- [x] Ranking with AI
+- [x] Ask AI
+- [x] Selectable LLM
+
 ## Structure
 
 ### Search
