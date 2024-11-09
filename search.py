@@ -13,8 +13,12 @@ import re
 from llama_cpp import Llama
 from duckduckgo_search import DDGS as ddg
 
-gemma_model_path = "/app/gemma2-2b-it.gguf"
-gemma_model_url = "https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf"
+ask_models = {
+    "gemma2-2b-it": {
+        "path": "/app/gemma2-2b-it.gguf",
+        "url": "https://huggingface.co/bartowski/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf"
+    }
+}
 ranking_model_name = "sentence-transformers/all-MiniLM-L6-v2"
 
 import argparse
@@ -92,15 +96,12 @@ class Downloader:
                 self.on_unit_downloaded(downloaded)
         self.progress_bar.finish()
 
-def isExistGemmaModel():
-    return os.path.exists(gemma_model_path)
+def isExistLLMModel(model_name):
+    return os.path.exists(ask_models[model_name]["path"])
 
-def downloadGemmaModel():
+def downloadLLMModel(model_name):
     downloader = Downloader()
-    downloader.download_file(gemma_model_url, gemma_model_path)
-
-if not isExistGemmaModel():
-    downloadGemmaModel()
+    downloader.download_file(ask_models[model_name]["url"], ask_models[model_name]["path"])
 
 app = Flask(__name__)
 CORS(app)
@@ -126,7 +127,12 @@ llm = pipeline(
     model="gpt2",
     device=0 if torch.cuda.is_available() else -1
 )
-llm_ask = Llama(model_path=gemma_model_path)
+
+ask_llms = {}
+for model_name in ask_models:
+    if not isExistLLMModel(model_name):
+        downloadLLMModel(model_name)
+    ask_llms[model_name] = Llama(model_path=ask_models[model_name]["path"])
 
 @app.route('/')
 def serve_index():
@@ -192,20 +198,25 @@ def search():
 
     return jsonify({'results': sorted_docs})
 
+@app.route('/models', methods=['GET'])
+def get_models():
+    return jsonify(list(ask_models.keys()))
+
 @app.route('/ask-ai', methods=['POST'])
 def ask_ai():
     print("Asked!")
 
     data = request.json
     query = data.get('query')
+    model_name = data.get('model', 'gemma2-2b-it')
 
-    print("Query:", query)
+    KamuJpModern().modernLogging(process_name="Ask AI").log(f"Query: {query}", "INFO")
 
     if not query:
         return jsonify({'error': '質問が必要です。'}), 400
 
     try:
-        response = llm_ask(query, max_tokens=512)
+        response = ask_llms[model_name](query, max_tokens=512)
         answer = response['choices'][0]['text'].split("[/assistant]")[0]
         return jsonify({'response': answer})
     except Exception as e:
