@@ -16,10 +16,13 @@ from duckduckgo_search import DDGS as ddg
 ask_models = {
     "llama3.2-3b-instruct": {
         "path": "/app/llama3.2-3b.gguf",
-        "url": "https://registry.ollama.ai/v2/library/llama3.2/manifests/3b"
+        "url": "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf"
     }
 }
 ranking_model_name = "sentence-transformers/all-MiniLM-L6-v2"
+
+KamuJpModern().modernLogging(process_name="Ask Models").log(list(ask_models.keys()).join("\n"), "INFO")
+KamuJpModern().modernLogging(process_name="Ranking Model").log(ranking_model_name, "INFO")
 
 import argparse
 import requests
@@ -131,8 +134,10 @@ llm = pipeline(
 ask_llms = {}
 for model_name in ask_models:
     if not isExistLLMModel(model_name):
+        KamuJpModern().modernLogging(process_name="Download LLM Model").log(f"Downloading {model_name}...", "INFO")
         downloadLLMModel(model_name)
     ask_llms[model_name] = Llama(model_path=ask_models[model_name]["path"])
+    KamuJpModern().modernLogging(process_name="Set LLM Model").log(f"Setted {model_name}.", "INFO")
 
 @app.route('/')
 def serve_index():
@@ -142,7 +147,8 @@ def serve_index():
 def search():
     query = request.args.get('q', '')
     if not query:
-        return jsonify({'error': 'クエリが必要です。'}), 400
+        KamuJpModern().modernLogging(process_name="Search API").log("Need query!", "ERROR")
+        return jsonify({'error': 'Need query!'}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -165,6 +171,8 @@ def search():
     
     if not results:
         return jsonify({'results': []})
+
+    KamuJpModern().modernLogging(process_name="Search API").log(results.join("\n"), "INFO")
 
     def flatten_embeddings(embedding):
         if isinstance(embedding[0], list):
@@ -196,15 +204,17 @@ def search():
 
     sorted_docs = sorted(relevant_docs, key=lambda x: x['similarity'], reverse=True)
 
+    KamuJpModern().modernLogging(process_name="Search API").log(sorted_docs.join("\n"), "INFO")
     return jsonify({'results': sorted_docs})
 
 @app.route('/models', methods=['GET'])
 def get_models():
+    KamuJpModern().modernLogging(process_name="Get Models").log(list(ask_models.keys()), "INFO")
     return jsonify(list(ask_models.keys()))
 
 @app.route('/ask-ai', methods=['POST'])
 def ask_ai():
-    print("Asked!")
+    KamuJpModern().modernLogging(process_name="Ask AI").log("Asked!", "INFO")
 
     data = request.json
     query = data.get('query')
@@ -213,14 +223,17 @@ def ask_ai():
     KamuJpModern().modernLogging(process_name="Ask AI").log(f"Query: {query}", "INFO")
 
     if not query:
-        return jsonify({'error': '質問が必要です。'}), 400
+        KamuJpModern().modernLogging(process_name="Ask AI").log("Need query!", "ERROR")
+        return jsonify({'error': 'Need query!'}), 400
 
     try:
         response = ask_llms[model_name](query, max_tokens=8192)
         answer = response['choices'][0]['text'].split("[/assistant]")[0].split("[user]")[0].split("[/user]")[0].split("[inst]")[0].split("[/inst]")[0]
+        KamuJpModern().modernLogging(process_name="Ask AI").log(f"AI response: {answer}", "INFO")
         return jsonify({'response': answer})
     except Exception as e:
-        return jsonify({'error': f'AI応答に失敗しました: {str(e)}'}), 500
+        KamuJpModern().modernLogging(process_name="Ask AI").log(f'AI response failed: {str(e)}', "ERROR")
+        return jsonify({'error': f'AI response failed: {str(e)}'}), 500
 
 @app.route('/crawl-api/', methods=['POST', 'OPTIONS'])
 def crawl():
@@ -234,7 +247,8 @@ def crawl():
     data = request.json
     url = data.get('url')
     if not url:
-        return jsonify({'error': 'URLが必要です。'}), 400
+        KamuJpModern().modernLogging(process_name="Crawl API").log("Need URL!", "ERROR")
+        return jsonify({'error': 'Need URL!'}), 400
 
     try:
         response = requests.get(url)
@@ -245,7 +259,8 @@ def crawl():
 
         language = 'ja' if re.search('[\u3040-\u30ff\u4e00-\u9fff]', title + description) else 'en'
     except Exception as e:
-        return jsonify({'error': f'URLからデータを取得できませんでした: {str(e)}'}), 500
+        KamuJpModern().modernLogging(process_name="Crawl API").log(f'Failed to get data from URL: {str(e)}', "ERROR")
+        return jsonify({'error': f'Failed to get data from URL: {str(e)}'}), 500
 
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -255,14 +270,18 @@ def crawl():
         cursor.execute(sql, (title, url, description, language))
         conn.commit()
     except mysql.connector.IntegrityError:
-        return jsonify({'error': 'このURLは既に存在します。'}), 400
+        KamuJpModern().modernLogging(process_name="Crawl API").log("This URL already exists.", "ERROR")
+        return jsonify({'error': 'This URL already exists.'}), 400
     except Exception as e:
-        return jsonify({'error': f'データベースへの挿入に失敗しました: {str(e)}'}), 500
+        KamuJpModern().modernLogging(process_name="Crawl API").log(f'Failed to insert data: {str(e)}', "ERROR")
+        return jsonify({'error': f'Failed to insert data: {str(e)}'}), 500
     finally:
         cursor.close()
         conn.close()
 
-    return jsonify({'status': 'ドキュメントが追加されました。'}), 201
+    KamuJpModern().modernLogging(process_name="Crawl API").log("Document added: " + title, "INFO")
+    return jsonify({'status': 'Document added.'}), 201
 
 if __name__ == '__main__':
+    KamuJpModern().modernLogging(process_name="Server").log("Server started.", "INFO")
     app.run(host='0.0.0.0', port=3000)
