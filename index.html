@@ -195,7 +195,12 @@
 
     <!-- Ask AI Container（幅が広いデバイス向け） -->
     <div id="ask-ai-container" class="chat-container rounded d-none d-sm-block">
-        <h5 class="mb-3">Gemma 2B it</h5>
+        <div class="mb-3">
+            <label for="model-select" class="form-label"><h5>Select Model</h5></label>
+            <select id="model-select" class="form-select">
+                <option value="">Select a model</option>
+            </select>
+        </div>
         <div id="chat-box">
             <div id="chat-messages" class="chat-messages"></div>
             <div class="input-group">
@@ -412,6 +417,26 @@
                 continueAiButton.classList.remove('d-none');
             }
 
+            async function fetchModels() {
+                try {
+                    const response = await fetch(`http://${window.location.hostname}:3000/models`);
+                    if (!response.ok) {
+                        throw new Error(`Error fetching models: ${response.statusText}`);
+                    }
+                    const models = await response.json();
+                    models.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model;
+                        option.textContent = model;
+                        modelSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Error fetching models:', error);
+                }
+            }
+
+            fetchModels();
+
             clearAiButton.addEventListener('click', () => {
                 chatMessagesDiv.innerHTML = '';
                 chatHistory = '';
@@ -421,7 +446,7 @@
             askAiButton.addEventListener('click', async () => {
                 const query = askAiQueryInput.value.trim();
                 const selectedModel = modelSelect.value;
-                
+
                 if (!query) {
                     return;
                 }
