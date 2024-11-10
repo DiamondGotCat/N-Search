@@ -118,7 +118,7 @@ db_config = {
     'charset': 'utf8mb4'
 }
 
-ask_llms = {}
+ask_llms = json.load(open('/app/models/ask_llms.json', 'r'))
 
 def get_db_connection():
     return mysql.connector.connect(**db_config)
