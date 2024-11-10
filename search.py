@@ -16,7 +16,7 @@ from KamuJpModern import KamuJpModern
 import json
 import asyncio
 
-ask_models = json.load(open('/app/models/ask_models.json', 'r'))
+ask_models = json.load(open('ask_models.json', 'r'))
 ranking_model_name = "sentence-transformers/all-MiniLM-L6-v2"
 
 KamuJpModern().modernLogging(process_name="Ask Models").log(", ".join(ask_models.keys()), "INFO")
@@ -104,7 +104,7 @@ async def downloadLLMModel(model_name):
     await downloader.download_file(ask_models[model_name]["url"], ask_models[model_name]["path"])
     
 def saveLLMModelToJSON():
-    json.dump(ask_models, open('ask_models.json', 'w'))
+    json.dump(ask_models, open('ask_llms.json', 'w'))
 
 app = Flask(__name__)
 CORS(app)
@@ -118,7 +118,7 @@ db_config = {
     'charset': 'utf8mb4'
 }
 
-ask_llms = json.load(open('/app/models/ask_llms.json', 'r'))
+ask_llms = json.load(open('ask_llms.json', 'r'))
 
 def get_db_connection():
     return mysql.connector.connect(**db_config)
