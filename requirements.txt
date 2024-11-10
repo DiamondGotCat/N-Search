@@ -1,4 +1,4 @@
-flask
+flask[async]
 mysql-connector-python
 flask-cors
 numpy

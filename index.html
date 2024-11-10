@@ -163,9 +163,14 @@
                         </span>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#" id="open-add-url-modal">
+                        <button class="nav-link" id="open-add-url-modal">
                             <i class="fas fa-plus me-1"></i> Add Site
-                        </a>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="open-add-model-modal">
+                            <i class="fas fa-plus me-1"></i> Add Model
+                        </button>
                     </li>
                 </ul>
             </div>
@@ -288,21 +293,59 @@
         </div>
     </div>
 
+    <!-- Add Model Modal -->
+    <div class="modal fade" id="add-model-modal" tabindex="-1" aria-labelledby="addModelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="addModelModalLabel" class="modal-title">Add Model</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="add-model-input" class="form-label">Model Name</label>
+                        <input type="text" class="form-control" id="add-model-input" placeholder="Model Name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="add-model-url-input" class="form-label">Model URL</label>
+                        <input type="url" class="form-control" id="add-model-url-input" placeholder="https://example.com">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="save-model-button" type="button" class="btn btn-success">Request</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS and dependencies (Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // Add URL Modal Logic
             const addUrlModal = new bootstrap.Modal(document.getElementById('add-url-modal'));
+            const addModelModal = new bootstrap.Modal(document.getElementById('add-model-modal'));
             const openAddUrlModalButton = document.getElementById('open-add-url-modal');
+            const openAddModelModalButton = document.getElementById('open-add-model-modal');
             const saveUrlButton = document.getElementById('save-url-button');
+            const saveModelButton = document.getElementById('save-model-button');
             const addUrlInput = document.getElementById('add-url-input');
+            const addModelInput = document.getElementById('add-model-input');
+            const addModelUrlInput = document.getElementById('add-model-url-input');
             const modelSelect = document.getElementById('model-select');
 
             // Open the modal
             openAddUrlModalButton.addEventListener('click', (e) => {
                 e.preventDefault(); // Prevent default anchor behavior
                 addUrlModal.show();
+            });
+
+            openAddModelModalButton.addEventListener('click', (e) => {
+                e.preventDefault(); // Prevent default anchor behavior
+                addModelModal.show();
             });
 
             // Save URL
@@ -333,6 +376,20 @@
                     console.error("Site add error:", error);
                     alert(`Failed to add site: ${error.message}`);
                 }
+            });
+
+            // Save Model
+            saveModelButton.addEventListener('click', async () => {
+                const modelName = addModelInput.value.trim();
+                if (!modelName) {
+                    alert("Please enter a model name.");
+                    return;
+                }
+                fetch(`http://${window.location.hostname}:3000/add-model/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model_name: modelName, model_url: addModelUrlInput.value.trim() })
+                });
             });
 
             // 検索機能（幅が広いデバイス向け）
@@ -645,7 +702,7 @@
                     if (data.results.length === 0) {
                         searchMessageMobile.innerHTML = `
                             <p class="text-danger">結果が見つかりませんでした。</p>
-                            <p>AIを使用すると、<br>データベースにないサイトにアクセスできます。</p>
+                            <p>AIを使用すると、データベースにないサイトにアクセスできます。</p>
                         `;
                         return;
                     }
@@ -702,6 +759,19 @@
                 chatMessagesMobileDiv.innerHTML = '';
                 chatHistoryMobile = '';
                 continueAiButtonMobile.classList.add('d-none');
+            });
+
+            saveModelButton.addEventListener('click', async () => {
+                const modelName = addModelInput.value.trim();
+                if (!modelName) {
+                    return;
+                }
+                await fetch(`http://${window.location.hostname}:3000/add-model/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model_name: modelName })
+                });
+                addModelModal.hide();
             });
 
             askAiButtonMobile.addEventListener('click', async () => {

@@ -13,13 +13,10 @@ import re
 from llama_cpp import Llama
 from duckduckgo_search import DDGS as ddg
 from KamuJpModern import KamuJpModern
+import json
+import asyncio
 
-ask_models = {
-    "llama3.2-3b-instruct": {
-        "path": "/app/llama3.2-3b.gguf",
-        "url": "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf"
-    }
-}
+ask_models = json.load(open('/app/models/ask_models.json', 'r'))
 ranking_model_name = "sentence-transformers/all-MiniLM-L6-v2"
 
 KamuJpModern().modernLogging(process_name="Ask Models").log(", ".join(ask_models.keys()), "INFO")
@@ -102,9 +99,12 @@ class Downloader:
 def isExistLLMModel(model_name):
     return os.path.exists(ask_models[model_name]["path"])
 
-def downloadLLMModel(model_name):
+async def downloadLLMModel(model_name):
     downloader = Downloader(title="Downloading " + model_name)
-    downloader.download_file(ask_models[model_name]["url"], ask_models[model_name]["path"])
+    await downloader.download_file(ask_models[model_name]["url"], ask_models[model_name]["path"])
+    
+def saveLLMModelToJSON():
+    json.dump(ask_models, open('ask_models.json', 'w'))
 
 app = Flask(__name__)
 CORS(app)
@@ -118,30 +118,55 @@ db_config = {
     'charset': 'utf8mb4'
 }
 
+ask_llms = {}
+
 def get_db_connection():
     return mysql.connector.connect(**db_config)
 
+async def downloadAllLLMModels():
+    for model_name in ask_models:
+        if not isExistLLMModel(model_name):
+            KamuJpModern().modernLogging(process_name="Download LLM Model").log(f"Downloading {model_name}...", "INFO")
+            downloadLLMModel(model_name)
+        ask_llms[model_name] = Llama(model_path=ask_models[model_name]["path"])
+        KamuJpModern().modernLogging(process_name="Set LLM Model").log(f"Setted {model_name}.", "INFO")
+
 # Initialize HuggingFace embeddings for document ranking
 embedding_model = HuggingFaceEmbeddings(model_name=ranking_model_name)
-
-# Initialize LLM for Ask AI feature
 llm = pipeline(
     "text-generation",
     model="gpt2",
     device=0 if torch.cuda.is_available() else -1
 )
 
-ask_llms = {}
-for model_name in ask_models:
-    if not isExistLLMModel(model_name):
-        KamuJpModern().modernLogging(process_name="Download LLM Model").log(f"Downloading {model_name}...", "INFO")
-        downloadLLMModel(model_name)
-    ask_llms[model_name] = Llama(model_path=ask_models[model_name]["path"])
-    KamuJpModern().modernLogging(process_name="Set LLM Model").log(f"Setted {model_name}.", "INFO")
+async def first_init():
+    await downloadAllLLMModels()
 
 @app.route('/')
 def serve_index():
     return send_from_directory('.', 'index.html')
+
+@app.route('/add-model/', methods=['POST'])
+async def add_model():
+    data = request.json
+    model_name = data.get('model_name')
+    model_url = data.get('model_url')
+    if not model_name:
+        KamuJpModern().modernLogging(process_name="Add Model").log("Need model name!", "ERROR")
+        return jsonify({'error': 'Need model name!'}), 400
+    if not model_url:
+        KamuJpModern().modernLogging(process_name="Add Model").log("Need model URL!", "ERROR")
+        return jsonify({'error': 'Need model URL!'}), 400
+    if not model_name in ask_models:
+        ask_models[model_name] = {
+            "url": model_url,
+            "path": f"models/{model_name}.gguf"
+        }
+        saveLLMModelToJSON()
+    
+    await downloadAllLLMModels()
+    KamuJpModern().modernLogging(process_name="Add Model").log(f"Added {model_name}.", "INFO")
+    return jsonify({'status': 'Model added.'}), 201
 
 @app.route('/search-api/', methods=['GET'])
 def search():
@@ -284,4 +309,5 @@ def crawl():
 
 if __name__ == '__main__':
     KamuJpModern().modernLogging(process_name="Server").log("Server started.", "INFO")
+    asyncio.run(first_init())
     app.run(host='0.0.0.0', port=3000)
