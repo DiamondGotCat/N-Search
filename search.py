@@ -125,7 +125,7 @@ def get_db_connection():
 
 async def downloadAllLLMModels():
     for model_name in ask_models:
-        if not isExistLLMModel(model_name):
+        if not isExistLLMModel(model_name) and not os.path.exists(ask_models[model_name]["path"]):
             KamuJpModern().modernLogging(process_name="Download LLM Model").log(f"Downloading {model_name}...", "INFO")
             downloadLLMModel(model_name)
         ask_llms[model_name] = Llama(model_path=ask_models[model_name]["path"])
